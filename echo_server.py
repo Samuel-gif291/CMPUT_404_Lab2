@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import socket
 import time
+from multiprocessing import Process
 
 #define address & buffer size
 HOST = ""
@@ -23,11 +24,16 @@ def main():
             conn, addr = s.accept()
             print("Connected by", addr)
             
-            #recieve data, wait a bit, then send it back
-            full_data = conn.recv(BUFFER_SIZE)
-            time.sleep(0.5)
-            conn.sendall(full_data)
-            conn.close()
+            p = Process(target=echo_handler, args=(conn, addr))
+            p.daemon = True
+            p.start()
 
+def echo_handler(conn, addr):
+    #recieve data, wait a bit, then send it back
+    full_data = conn.recv(BUFFER_SIZE)
+    time.sleep(0.5)
+    conn.sendall(full_data)
+    conn.close()
+    
 if __name__ == "__main__":
     main()
